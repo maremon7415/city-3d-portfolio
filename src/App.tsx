@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { Component, lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { useStore } from './state/store'
 import { Journey } from './ui/Journey'
 import { Nav } from './ui/Nav'
@@ -11,6 +11,23 @@ import { audio } from './systems/audio'
 import { bindGlobalEggs } from './systems/eggs'
 import { live } from './state/store'
 import { lockScroll } from './systems/scroll'
+
+/** If the 3D scene ever crashes, fall back to the 2D site instead of a blank page. */
+class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+  componentDidCatch(error: unknown) {
+    console.error('3D scene failed, switching to 2D mode', error)
+    const s = useStore.getState()
+    s.setMode('flat')
+    s.pushToast({ kind: 'info', title: 'Switched to the 2D version', text: 'The 3D city could not start on this device, so here is the fast 2D version.' })
+  }
+  render() {
+    return this.state.failed ? null : this.props.children
+  }
+}
 
 const Experience = lazy(() => import('./scenes/Experience').then((m) => ({ default: m.Experience })))
 const PlayHud = lazy(() => import('./ui/PlayHud'))
@@ -74,6 +91,10 @@ export function App() {
     })
   }, [sceneReady])
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('is-playing', mode === 'play')
+  }, [mode])
+
   // keep the page still until the visitor enters
   useEffect(() => {
     if (mode === 'flat') return lockScroll(false)
@@ -102,9 +123,11 @@ export function App() {
         Skip to content
       </a>
       {mode !== 'flat' && (
-        <Suspense fallback={null}>
-          <Experience />
-        </Suspense>
+        <SceneBoundary>
+          <Suspense fallback={null}>
+            <Experience />
+          </Suspense>
+        </SceneBoundary>
       )}
       {mode !== 'flat' && <Journey hidden={mode === 'play'} />}
       {mode !== 'flat' && <Nav />}

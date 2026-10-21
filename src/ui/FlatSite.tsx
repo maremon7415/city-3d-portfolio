@@ -11,6 +11,10 @@ export function FlatSite() {
   const openProject = useStore((s) => s.openProject)
   const openContact = useStore((s) => s.openContact)
   const heading = useRef<HTMLHeadingElement>(null)
+  const back = () => {
+    scrollTo(0, 0)
+    setMode('journey')
+  }
 
   useEffect(() => {
     scrollTo(0, 0)
@@ -32,7 +36,7 @@ export function FlatSite() {
           <a href="#flat-about">About</a>
           <a href="#flat-contact">Contact</a>
         </nav>
-        <button className="pill-btn accent" onClick={() => setMode('journey')}>
+        <button className="pill-btn accent" onClick={back}>
           Back to 3D <span aria-hidden="true">🏝️</span>
         </button>
       </header>
@@ -150,7 +154,7 @@ export function FlatSite() {
       <footer className="flat-footer">
         <p>
           © {new Date().getFullYear()} {profile.name}. Built as a floating island city —{' '}
-          <button className="link-btn" onClick={() => setMode('journey')}>
+          <button className="link-btn" onClick={back}>
             fly through it
           </button>
           .

@@ -1,5 +1,5 @@
-import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useEffect, useMemo, useRef } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
 import { PerspectiveCamera, Vector3 } from 'three'
 import { sampleCamera } from '../systems/cameraPath'
 import { sampleDay, env } from '../systems/dayNight'
@@ -8,17 +8,26 @@ import { damp } from '../systems/math'
 import { audio } from '../systems/audio'
 import { shake } from './finale/Finale'
 
+// survives remounts (e.g. returning from Play Mode) so the camera glides back instead of snapping
+const session = { initialised: false, enteredAt: -1 }
+
 /** Flies the camera along the scroll-driven path and drives the day-night cycle. */
 export function JourneyCamera() {
   const reduced = useStore((s) => s.reducedMotion)
   const entered = useStore((s) => s.entered)
-  const enteredAt = useRef(-1)
+  const camera = useThree((s) => s.camera)
   const pos = useMemo(() => new Vector3(), [])
   const target = useMemo(() => new Vector3(), [])
   const look = useRef(new Vector3())
   const smoothPointer = useRef({ x: 0, y: 0 })
-  const initialised = useRef(false)
   const tmp = useMemo(() => ({ fwd: new Vector3(), right: new Vector3(), up: new Vector3(0, 1, 0) }), [])
+
+  // start looking where the camera already looks, so the first frames don't swing
+  useEffect(() => {
+    const dir = new Vector3()
+    camera.getWorldDirection(dir)
+    look.current.copy(camera.position).addScaledVector(dir, 20)
+  }, [camera])
 
   useFrame((state, dt) => {
     const cam = state.camera as PerspectiveCamera
@@ -53,8 +62,8 @@ export function JourneyCamera() {
     }
 
     // takeoff: before entering, wait low in the clouds; after, rise into the first shot
-    if (entered && enteredAt.current < 0) enteredAt.current = state.clock.elapsedTime
-    const fly = !entered ? 0 : reduced ? 1 : Math.min(1, (state.clock.elapsedTime - enteredAt.current) / 3.4)
+    if (entered && session.enteredAt < 0) session.enteredAt = performance.now()
+    const fly = !entered ? 0 : reduced ? 1 : Math.min(1, Math.max(0, (performance.now() - session.enteredAt) / 3400))
     if (fly < 1 && live.progress < 0.02) {
       const e = 1 - Math.pow(1 - fly, 3)
       pos.x += (1 - e) * -10
@@ -63,10 +72,10 @@ export function JourneyCamera() {
       target.y += (1 - e) * -6
     }
 
-    if (!initialised.current) {
+    if (!session.initialised) {
       cam.position.copy(pos)
       look.current.copy(target)
-      initialised.current = true
+      session.initialised = true
       live.dayPhase = day
     }
     const k = damp(reduced ? 14 : 3.6, dt)

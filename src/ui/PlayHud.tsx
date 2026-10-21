@@ -194,6 +194,8 @@ export default function PlayHud() {
 
   useEffect(() => {
     const exit = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
       if (e.key === 'Escape' && !document.querySelector('.modal')) setMode('journey')
       if (e.key === 'h' || e.key === 'H' || e.key === '?') setHelp((v) => !v)
     }

@@ -109,6 +109,9 @@ p {
 }
 
 /* ───────────────────────── canvas ───────────────────────── */
+.is-playing .scene-canvas {
+  touch-action: none;
+}
 .scene-canvas {
   position: fixed !important;
   inset: 0;

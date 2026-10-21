@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { BallCollider, CuboidCollider, CylinderCollider, Physics, RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import { AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Color, MeshBasicMaterial, PerspectiveCamera, SRGBColorSpace, Vector3, type Group, type Mesh, type PointLight, type Points } from 'three'
-import { shards } from '../../content'
+import { playCopy, shards } from '../../content'
 import { BUG_SPOTS, buildColliders, DISTRICTS, LAUNCH_PAD, RING_COURSE, RUBBER_DUCK, SHARD_SPOTS, SPAWN } from '../../systems/layout'
 import { build, G } from '../../systems/geometry'
 import { crystalMat, vertexMat } from '../materials'
@@ -608,7 +608,7 @@ function RewardWatcher() {
       const s = useStore.getState()
       audio.success()
       s.markRewardSeen()
-      import('../../content').then(({ playCopy }) => s.pushToast({ kind: 'reward', title: playCopy.rewardTitle, text: playCopy.rewardText }))
+      s.pushToast({ kind: 'reward', title: playCopy.rewardTitle, text: playCopy.rewardText })
     }
   }, [count, seen])
   return null
