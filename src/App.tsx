@@ -20,6 +20,14 @@ export function App() {
   const entered = useStore((s) => s.entered)
   const sceneReady = useStore((s) => s.sceneReady)
   const soundOn = useStore((s) => s.soundOn)
+  const chapter = useStore((s) => s.chapter)
+
+  // warm up the Play Mode chunk (physics) while the visitor reads the last chapters
+  useEffect(() => {
+    if (chapter < 3) return
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1200))
+    idle(() => void import('./scenes/play/PlayMode'))
+  }, [chapter])
 
   // sound follows the store (store changes happen inside click handlers = user gestures)
   useEffect(() => {
@@ -62,8 +70,7 @@ export function App() {
   useEffect(() => {
     if (!sceneReady) return
     loader.onReady(() => {
-      const btn = loaderButtons().enterSound
-      btn?.focus({ preventScroll: true })
+      loaderButtons().enter?.focus({ preventScroll: true })
     })
   }, [sceneReady])
 

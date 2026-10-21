@@ -11,6 +11,8 @@ import { shake } from './finale/Finale'
 /** Flies the camera along the scroll-driven path and drives the day-night cycle. */
 export function JourneyCamera() {
   const reduced = useStore((s) => s.reducedMotion)
+  const entered = useStore((s) => s.entered)
+  const enteredAt = useRef(-1)
   const pos = useMemo(() => new Vector3(), [])
   const target = useMemo(() => new Vector3(), [])
   const look = useRef(new Vector3())
@@ -48,6 +50,17 @@ export function JourneyCamera() {
       tmp.fwd.subVectors(target, pos).normalize()
       tmp.right.crossVectors(tmp.fwd, tmp.up).normalize()
       pos.addScaledVector(tmp.right, sp.x * 0.9).addScaledVector(tmp.up, sp.y * 0.5)
+    }
+
+    // takeoff: before entering, wait low in the clouds; after, rise into the first shot
+    if (entered && enteredAt.current < 0) enteredAt.current = state.clock.elapsedTime
+    const fly = !entered ? 0 : reduced ? 1 : Math.min(1, (state.clock.elapsedTime - enteredAt.current) / 3.4)
+    if (fly < 1 && live.progress < 0.02) {
+      const e = 1 - Math.pow(1 - fly, 3)
+      pos.x += (1 - e) * -10
+      pos.y += (1 - e) * -15
+      pos.z += (1 - e) * 24
+      target.y += (1 - e) * -6
     }
 
     if (!initialised.current) {

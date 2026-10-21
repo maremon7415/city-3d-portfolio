@@ -165,6 +165,7 @@ function Item({ id, model, title, text, children }: { id: string; model: AboutMo
         }}
         onClick={(e) => {
           e.stopPropagation()
+          if (e.delta > 8) return
           audio.click()
           setPinned(pinned ? null : id)
           if (model === 'cat') {

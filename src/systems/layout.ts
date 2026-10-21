@@ -66,16 +66,16 @@ export const PROJECT_SLOTS: ProjectSlot[] = projects.slice(0, 4).map((p, i) => {
   const angle = PROJECT_ANGLES[i]
   const r = DISTRICTS.projects.arcRadius
   const pos: V3 = [Math.cos(angle) * r, 0, Math.sin(angle) * r]
-  // building local +Z is its front; rotate so +Z points at the island centre
-  const rotY = Math.atan2(-pos[0], -pos[2])
+  // building local +Z is its front; screens face outward, toward the sky
+  const rotY = Math.atan2(pos[0], pos[2])
   const heights: Record<string, number> = { tower: 13, dome: 7.5, studio: 8, factory: 7 }
   const height = heights[p.building] ?? 8
-  // look at the building's face from an oblique angle, far enough to frame all of it
-  const dist = 8 + height * 0.8
-  const phi = i % 2 === 0 ? -0.62 : 0.62
-  const a = angle + Math.PI + phi
+  // the camera hovers beyond the island edge, so the whole city is the backdrop,
+  // and orbits the district from one project to the next
+  const dist = 8 + height * 0.75
+  const a = angle - 0.4
   const mid = height * 0.5
-  const cam: V3 = [pos[0] + Math.cos(a) * dist, mid + 2.2, pos[2] + Math.sin(a) * dist]
+  const cam: V3 = [pos[0] + Math.cos(a) * dist, mid + 2.4, pos[2] + Math.sin(a) * dist]
   return { id: p.id, index: i, pos, rotY, angle, footprint: [5.2, 5.2], height, cam, camTarget: [pos[0], mid, pos[2]] }
 })
 

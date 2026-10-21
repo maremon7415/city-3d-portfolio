@@ -218,6 +218,7 @@ function Building({ project, slot }: { project: Project; slot: ProjectSlot }) {
           onPointerOut={onOut}
           onClick={(e) => {
             e.stopPropagation()
+            if (e.delta > 8) return
             audio.open()
             openProject(project.id)
           }}

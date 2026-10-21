@@ -136,7 +136,17 @@ function Drone() {
     look.current.copy(player)
     ;(camera as PerspectiveCamera).clearViewOffset()
     const unbind = bindPlayInput()
+    // ?debug: window.__teleport(x, y, z, yaw) for testing hard-to-reach spots
+    const w = window as unknown as { __teleport?: (x: number, y: number, z: number, yaw?: number) => void }
+    if (useStore.getState().debug) {
+      w.__teleport = (x, y, z, yaw) => {
+        body.current?.setTranslation({ x, y, z }, true)
+        body.current?.setLinvel({ x: 0, y: 0, z: 0 }, true)
+        if (yaw !== undefined) cam.yaw = yaw
+      }
+    }
     return () => {
+      delete w.__teleport
       unbind()
       audio.setEngine(null)
       setNearRocket(false)
@@ -502,7 +512,7 @@ function HiddenRoom() {
       build([
         { geo: G.box(1.2, 2.6, 0.9), color: '#2b2f3c', pos: [-1.6, 1.3, -1.2] },
         { geo: G.box(1.2, 2.6, 0.9), color: '#2b2f3c', pos: [-0.3, 1.3, -1.6] },
-        { geo: G.box(0.4, 0.4, 0.4), color: '#ffd84a', pos: [0, 0.2, 0] },
+        { geo: G.cyl(0.5, 0.6, 0.5, 8), color: '#59607a', pos: [RUBBER_DUCK[0] - DISTRICTS.hidden.pos[0], 0.25, RUBBER_DUCK[2] - DISTRICTS.hidden.pos[2]] },
       ]),
     [],
   )
@@ -567,7 +577,8 @@ function HiddenRoom() {
       <mesh position={[1.4, 1.8, -2.2]} rotation-y={-0.4} material={signMat}>
         <planeGeometry args={[3.2, 1.0]} />
       </mesh>
-      <pointLight color="#7ff3ff" intensity={14} distance={14} position={[0, 3, 0]} />
+      <pointLight color="#7ff3ff" intensity={10} distance={14} position={[-1.5, 3, -1.5]} />
+      <pointLight color="#ffe6b8" intensity={12} distance={8} position={[RUBBER_DUCK[0] - h.pos[0] + 0.6, 2.4, RUBBER_DUCK[2] - h.pos[2] + 1.2]} />
     </group>
   )
 }

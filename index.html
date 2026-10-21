@@ -50,11 +50,12 @@
       .ld-btn:focus-visible, .ld-skip:focus-visible { outline: 3px solid #7ff3ff; outline-offset: 3px; }
       .ld-skip { color: #f6efe6; opacity: .7; font-size: 13px; background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font: inherit; font-size: 13px; }
       .ld-skip:hover { opacity: 1; }
+      .ld-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
       @media (prefers-reduced-motion: reduce) { .ld-island .vox, .ld-island .rock { transition: opacity .3s; } .ld-island .float { animation: none; } }
     </style>
   </head>
   <body>
-    <div id="loader" role="status" aria-live="polite">
+    <div id="loader">
       <div class="ld-inner">
         <svg class="ld-island" viewBox="0 0 220 210" aria-hidden="true">
           <g class="float">
@@ -64,10 +65,11 @@
         </svg>
         <p class="ld-title">%PORTFOLIO_NAME% · Floating Island City</p>
         <div class="ld-bar" aria-hidden="true"><i id="ld-bar"></i></div>
-        <p class="ld-status" id="ld-status">Loading…</p>
+        <p class="ld-status" id="ld-status" aria-hidden="true">Loading…</p>
+        <p class="ld-sr" id="ld-announce" role="status" aria-live="polite">Loading the island</p>
         <div class="ld-actions" id="ld-actions">
-          <button class="ld-btn" id="ld-enter-sound" type="button">Enter with sound 🔊</button>
-          <button class="ld-btn ghost" id="ld-enter" type="button">Enter quietly</button>
+          <button class="ld-btn" id="ld-enter" type="button">Enter the city</button>
+          <button class="ld-btn ghost" id="ld-enter-sound" type="button">Enter with sound 🔊</button>
         </div>
         <button class="ld-skip" id="ld-skip" type="button">Skip to content (simple 2D version)</button>
       </div>
@@ -110,12 +112,14 @@
         var bar = document.getElementById('ld-bar')
         var status = document.getElementById('ld-status')
         var actions = document.getElementById('ld-actions')
+        var announce = document.getElementById('ld-announce'), lastLabel = ''
         var shown = 0, target = 0, label = 'Loading…', start = performance.now(), readyCb = null, isReady = false
         function tick() {
           shown += (target - shown) * 0.12
           if (Math.abs(target - shown) < 0.002) shown = target
           bar.style.width = (shown * 100).toFixed(1) + '%'
           status.textContent = label + ' · ' + Math.round(shown * 100) + '%'
+          if (label !== lastLabel) { lastLabel = label; announce.textContent = label === 'Welcome' ? 'Ready. Press Enter the city, or skip to the simple 2D version.' : label }
           var n = Math.round(shown * voxels.length)
           voxels.forEach(function (v, i) { v.classList.toggle('on', i < n) })
           rock.classList.toggle('on', shown > 0.15)

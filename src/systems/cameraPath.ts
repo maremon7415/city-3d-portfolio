@@ -54,9 +54,9 @@ export const KEYFRAMES: Keyframe[] = [
   },
   { id: 'rise', panel: false, pos: [-14, 22, 40], target: [0, 0, 0], day: 0.1 },
   { id: 'overview', panel: false, pos: [2, 30, 18], target: [6, 0, -4], day: 0.17 },
-  { id: 'approach', panel: false, pos: [-6, 14, 5], target: [4, 3, -10], day: 0.21 },
+  { id: 'approach', panel: false, pos: [2, 15, -27], target: [8, 5, -14], day: 0.21 },
   ...projectFrames(),
-  { id: 'to-skills', panel: false, pos: [-1, 12, 0], target: [-10, 3, -8], day: 0.58 },
+  { id: 'to-skills', panel: false, pos: [7, 15, 6], target: [-10, 3, -8], day: 0.58 },
   {
     id: 'skills',
     panel: true,

@@ -34,14 +34,21 @@ function useReveal(container: React.RefObject<HTMLElement | null>) {
 
 function Hero() {
   const setMode = useStore((s) => s.setMode)
+  const entered = useStore((s) => s.entered)
   return (
-    <div className="card hero-card" style={{ ['--reveal' as string]: 1 }}>
+    <div className={`card hero-card ${entered ? 'is-in' : ''}`} style={{ ['--reveal' as string]: 1 }}>
       <p className="kicker">
         <span className="dot" /> {profile.availability}
       </p>
       <h1 className="hero-name">
         <span className="sr-only">{profile.name} — </span>
-        <span aria-hidden="true">{profile.name}</span>
+        <span aria-hidden="true" className="hero-letters">
+          {profile.name.split('').map((ch, i) => (
+            <span key={i} style={{ ['--i' as string]: i }}>
+              {ch}
+            </span>
+          ))}
+        </span>
       </h1>
       <p className="hero-title">{profile.title}</p>
       <p className="hero-intro">{profile.intro}</p>

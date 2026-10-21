@@ -130,6 +130,7 @@ function Rocket() {
         position={[0, 0.45, 0]}
         onClick={(e) => {
           e.stopPropagation()
+          if (e.delta > 8) return
           onClick()
         }}
         onPointerOver={() => {
@@ -195,6 +196,7 @@ function Terminal() {
       rotation-y={-0.5}
       onClick={(e) => {
         e.stopPropagation()
+        if (e.delta > 8) return
         audio.open()
         openContact(true)
       }}
