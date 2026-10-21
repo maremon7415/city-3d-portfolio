@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>%PORTFOLIO_TITLE%</title>
+    <meta name="description" content="%PORTFOLIO_DESCRIPTION%" />
+    <meta name="theme-color" content="#151c40" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="canonical" href="%PORTFOLIO_URL%" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="%PORTFOLIO_TITLE%" />
+    <meta property="og:description" content="%PORTFOLIO_DESCRIPTION%" />
+    <meta property="og:url" content="%PORTFOLIO_URL%" />
+    <meta property="og:image" content="%PORTFOLIO_URL%/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="%PORTFOLIO_TITLE%" />
+    <meta name="twitter:description" content="%PORTFOLIO_DESCRIPTION%" />
+    <meta name="twitter:image" content="%PORTFOLIO_URL%/og-image.jpg" />
+    <style>
+      /* Critical loader styles — inline so the loading screen paints before any JS. */
+      html { background: #151c40; }
+      #loader {
+        position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
+        background: radial-gradient(120% 90% at 50% 10%, #2a2f6b 0%, #151c40 55%, #0b1029 100%);
+        color: #f6efe6; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        transition: opacity .9s ease, visibility .9s;
+      }
+      #loader.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+      .ld-inner { display: grid; justify-items: center; gap: 22px; padding: 24px; text-align: center; }
+      .ld-island { width: 220px; height: 210px; overflow: visible; }
+      .ld-island .vox { opacity: 0; transform: translateY(-46px); transition: transform .6s cubic-bezier(.34,1.56,.64,1), opacity .35s ease; }
+      .ld-island .vox.on { opacity: 1; transform: none; }
+      .ld-island .rock { transform-origin: 110px 124px; transform: scaleY(0); transition: transform .8s cubic-bezier(.34,1.56,.64,1); }
+      .ld-island .rock.on { transform: scaleY(1); }
+      .ld-island .float { animation: ld-float 3.2s ease-in-out infinite; }
+      @keyframes ld-float { 50% { transform: translateY(-6px); } }
+      .ld-title { font-size: 13px; letter-spacing: .32em; text-transform: uppercase; opacity: .75; margin: 0; }
+      .ld-bar { width: min(260px, 70vw); height: 4px; border-radius: 4px; background: rgba(255,255,255,.12); overflow: hidden; }
+      .ld-bar i { display: block; height: 100%; width: 0%; border-radius: 4px; background: linear-gradient(90deg, #ffb48c, #ffd36b, #7ff3ff); transition: width .35s ease; }
+      .ld-status { font-size: 12px; opacity: .6; min-height: 1.2em; font-variant-numeric: tabular-nums; margin: 0; }
+      .ld-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; opacity: 0; transform: translateY(8px); transition: all .5s ease; pointer-events: none; }
+      .ld-actions.on { opacity: 1; transform: none; pointer-events: auto; }
+      .ld-btn { font: inherit; font-size: 15px; font-weight: 600; border: 0; border-radius: 999px; padding: 13px 22px; cursor: pointer; color: #151c40; background: #fff3e2; box-shadow: 0 10px 30px rgba(255,180,140,.25); transition: transform .2s ease, box-shadow .2s ease; }
+      .ld-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(255,180,140,.4); }
+      .ld-btn.ghost { background: transparent; color: #f6efe6; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.35); }
+      .ld-btn:focus-visible, .ld-skip:focus-visible { outline: 3px solid #7ff3ff; outline-offset: 3px; }
+      .ld-skip { color: #f6efe6; opacity: .7; font-size: 13px; background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font: inherit; font-size: 13px; }
+      .ld-skip:hover { opacity: 1; }
+      @media (prefers-reduced-motion: reduce) { .ld-island .vox, .ld-island .rock { transition: opacity .3s; } .ld-island .float { animation: none; } }
+    </style>
+  </head>
+  <body>
+    <div id="loader" role="status" aria-live="polite">
+      <div class="ld-inner">
+        <svg class="ld-island" viewBox="0 0 220 210" aria-hidden="true">
+          <g class="float">
+            <polygon class="rock" points="44,124 110,157 176,124 142,176 110,204 78,176" fill="#6d5f74" />
+            <g id="ld-voxels" transform="translate(110 60)"></g>
+          </g>
+        </svg>
+        <p class="ld-title">%PORTFOLIO_NAME% · Floating Island City</p>
+        <div class="ld-bar" aria-hidden="true"><i id="ld-bar"></i></div>
+        <p class="ld-status" id="ld-status">Loading…</p>
+        <div class="ld-actions" id="ld-actions">
+          <button class="ld-btn" id="ld-enter-sound" type="button">Enter with sound 🔊</button>
+          <button class="ld-btn ghost" id="ld-enter" type="button">Enter quietly</button>
+        </div>
+        <button class="ld-skip" id="ld-skip" type="button">Skip to content (simple 2D version)</button>
+      </div>
+    </div>
+    <script>
+      ;(function () {
+        // Build the 3×3 voxel island (+ a house and two trees on top) as SVG.
+        var g = document.getElementById('ld-voxels')
+        var NS = 'http://www.w3.org/2000/svg'
+        var cells = []
+        for (var i = 0; i < 3; i++) for (var j = 0; j < 3; j++) cells.push([i, j])
+        cells.sort(function (a, b) { return a[0] + a[1] - (b[0] + b[1]) })
+        function poly(parent, pts, fill) {
+          var p = document.createElementNS(NS, 'polygon')
+          p.setAttribute('points', pts)
+          p.setAttribute('fill', fill)
+          parent.appendChild(p)
+        }
+        function cube(x, y, top, left, right, h) {
+          var c = document.createElementNS(NS, 'g')
+          c.setAttribute('class', 'vox')
+          var w = 22, t = 11
+          var ox = x, oy = y
+          poly(c, (ox) + ',' + (oy - t) + ' ' + (ox + w) + ',' + oy + ' ' + ox + ',' + (oy + t) + ' ' + (ox - w) + ',' + oy, top)
+          poly(c, (ox - w) + ',' + oy + ' ' + ox + ',' + (oy + t) + ' ' + ox + ',' + (oy + t + h) + ' ' + (ox - w) + ',' + (oy + h), left)
+          poly(c, (ox + w) + ',' + oy + ' ' + ox + ',' + (oy + t) + ' ' + ox + ',' + (oy + t + h) + ' ' + (ox + w) + ',' + (oy + h), right)
+          g.appendChild(c)
+          return c
+        }
+        var voxels = []
+        cells.forEach(function (ij) {
+          var x = (ij[0] - ij[1]) * 22, y = (ij[0] + ij[1]) * 11 + 20
+          voxels.push(cube(x, y, (ij[0] + ij[1]) % 2 ? '#8fcf6b' : '#9bd977', '#b07d56', '#8c6247', 22))
+        })
+        // props: house + trees
+        voxels.push(cube(-22, 13, '#d9674e', '#f6e7cb', '#e8d2b0', 18))
+        voxels.push(cube(22, 5, '#4fae6e', '#3f9a63', '#357f52', 26))
+        voxels.push(cube(0, 26, '#6fbf5a', '#5aa64a', '#4b8f3e', 16))
+        var rock = document.querySelector('.ld-island .rock')
+        var bar = document.getElementById('ld-bar')
+        var status = document.getElementById('ld-status')
+        var actions = document.getElementById('ld-actions')
+        var shown = 0, target = 0, label = 'Loading…', start = performance.now(), readyCb = null, isReady = false
+        function tick() {
+          shown += (target - shown) * 0.12
+          if (Math.abs(target - shown) < 0.002) shown = target
+          bar.style.width = (shown * 100).toFixed(1) + '%'
+          status.textContent = label + ' · ' + Math.round(shown * 100) + '%'
+          var n = Math.round(shown * voxels.length)
+          voxels.forEach(function (v, i) { v.classList.toggle('on', i < n) })
+          rock.classList.toggle('on', shown > 0.15)
+          if (shown >= 0.999 && !isReady && readyCb) { isReady = true; readyCb() }
+          if (!window.__loaderGone) requestAnimationFrame(tick)
+        }
+        requestAnimationFrame(tick)
+        window.__loader = {
+          set: function (p, text) { target = Math.max(target, Math.min(1, p)); if (text) label = text },
+          onReady: function (cb) {
+            var wait = Math.max(0, 1100 - (performance.now() - start))
+            readyCb = function () { setTimeout(function () { label = 'Welcome'; actions.classList.add('on'); cb && cb() }, wait) }
+            if (shown >= 0.999 && !isReady) { isReady = true; readyCb() }
+          },
+          hide: function () {
+            document.getElementById('loader').classList.add('is-hidden')
+            setTimeout(function () { window.__loaderGone = true }, 1000)
+          },
+        }
+        window.__loader.set(0.12, 'Fetching the island')
+      })()
+    </script>
+    <div id="root"></div>
+    <noscript>%PORTFOLIO_NOSCRIPT%</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
